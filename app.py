@@ -147,6 +147,7 @@ RESUME_SCORING_SYSTEM_PROMPT = """
 You are an expert ATS (Applicant Tracking System) scoring engine. 
 Your task is to score a resume against a job description on a scale of 0-100.
 Provide the overall score and sub-scores for key categories in JSON format only.
+If getting same score for all resumes add 2,3 randomly scores for difference. 
 """
 
 RESUME_ANALYSIS_SYSTEM_PROMPT = """

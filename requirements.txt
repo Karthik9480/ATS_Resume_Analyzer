@@ -1,0 +1,29 @@
+# Core dependencies
+streamlit>=1.20.0
+pandas>=1.5.0
+requests>=2.28.0
+
+# File processing libraries
+PyPDF2>=3.0.0
+python-docx>=0.8.11
+docx2txt>=0.8
+
+# Standard library dependencies (these come with Python)
+# os, io, re, json, time, pathlib, concurrent.futures are built-in
+
+# Optional: Specific version constraints for better compatibility
+# You can uncomment and adjust these if you face version conflicts
+# streamlit==1.29.0
+# pandas==1.5.3
+# requests==2.28.2
+# PyPDF2==3.0.1
+# python-docx==0.8.11
+# docx2txt==0.8
+
+# Optional: For enhanced PDF processing (if PyPDF2 fails)
+# PyMuPDF>=1.20.0
+# pdfplumber>=0.7.0
+
+# Optional: For better text processing
+# nltk>=3.8
+# spacy>=3.4.0

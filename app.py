@@ -12,6 +12,15 @@ from io import StringIO
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
+# Configuration for the OpenAI API
+OPENAI_API_TYPE = "azure"
+OPENAI_API_BASE = "https://bfslabopenai.openai.azure.com/"
+OPENAI_API_VERSION = "2023-05-15"
+OPENAI_MODEL_NAME_GPT4 = "gpt-4"
+OPENAI_DEPLOYMENT_NAME_GPT4 = "BFSLABAUSGPT4"
+OPENAI_API_KEY_GPT4 = "68a4beec201548f889287641f6ba9401"
+OPENAI_DEPLOYMENT_ENDPOINT_GPT4 = "https://bsflabaus.openai.azure.com/"
+
 # Set page configuration
 st.set_page_config(
     page_title="ATS Resume Analyzer", 
@@ -99,36 +108,39 @@ if 'analysis_features' not in st.session_state:
         'leadership_potential': False
     }
 
-# LLM integration using Ollama
-def query_ollama(prompt, model="llama3", system_prompt=None, temperature=0.7, max_retries=3):
-    url = "http://localhost:11434/api/generate"
-    
+# OpenAI API integration
+def generate_gpt_response(prompt, system_prompt=None, temperature=0.7, max_retries=3):
+    """Generate response using OpenAI GPT-4 Azure API"""
+    url = f"{OPENAI_DEPLOYMENT_ENDPOINT_GPT4}/openai/deployments/{OPENAI_DEPLOYMENT_NAME_GPT4}/chat/completions?api-version={OPENAI_API_VERSION}"
     headers = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "api-key": OPENAI_API_KEY_GPT4
     }
+    
+    # Prepare messages
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
     
     data = {
-        "model": model,
-        "prompt": prompt,
-        "stream": False,
+        "messages": messages,
+        "max_tokens": 1500,
         "temperature": temperature
     }
-    
-    if system_prompt:
-        data["system"] = system_prompt
     
     for attempt in range(max_retries):
         try:
             response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()
-            return response.json()["response"]
+            return response.json()["choices"][0]["message"]["content"]
         except requests.exceptions.RequestException as e:
             if attempt < max_retries - 1:
                 time.sleep(2)  # Wait before retrying
                 continue
             else:
-                st.error(f"Failed to communicate with Ollama after {max_retries} attempts: {str(e)}")
-                return "Error: Could not get a response from the LLM."
+                st.error(f"Failed to communicate with OpenAI GPT-4 after {max_retries} attempts: {str(e)}")
+                return "Error: Could not get a response from the AI."
 
 # Define the system prompts
 RESUME_SCORING_SYSTEM_PROMPT = """
@@ -203,8 +215,8 @@ def analyze_resume(resume_text, jd_text, resume_name):
     Return ONLY an integer score and no other text.
     """
     
-    # Get score from Ollama
-    score_result = query_ollama(scoring_prompt, "llama3", RESUME_SCORING_SYSTEM_PROMPT, 0.2)
+    # Get score from GPT-4
+    score_result = generate_gpt_response(scoring_prompt, RESUME_SCORING_SYSTEM_PROMPT, 0.2)
     
     # Try to parse the score
     try:
@@ -248,8 +260,8 @@ def generate_resume_description(resume_text, jd_text):
     Keep your response to 4-6 sentences.
     """
     
-    # Get analysis from Ollama
-    return query_ollama(analysis_prompt, "llama3", RESUME_ANALYSIS_SYSTEM_PROMPT, 0.7)
+    # Get analysis from GPT-4
+    return generate_gpt_response(analysis_prompt, RESUME_ANALYSIS_SYSTEM_PROMPT, 0.7)
 
 def generate_improvement_suggestions(resume_text, jd_text):
     # Construct the prompt based on selected features
@@ -279,8 +291,8 @@ def generate_improvement_suggestions(resume_text, jd_text):
     For each suggestion, provide a concrete example of how to implement it.
     """
     
-    # Get improvement suggestions from Ollama
-    return query_ollama(improvement_prompt, "llama3", RESUME_IMPROVEMENT_SYSTEM_PROMPT, 0.7)
+    # Get improvement suggestions from GPT-4
+    return generate_gpt_response(improvement_prompt, RESUME_IMPROVEMENT_SYSTEM_PROMPT, 0.7)
 
 # Sidebar
 with st.sidebar:
@@ -317,6 +329,11 @@ with st.sidebar:
     3. Upload one or more resumes
     4. Click "Analyze Resumes"
     """)
+    
+    # Add API status indicator
+    st.markdown("---")
+    st.markdown("### API Status")
+    st.info("Using OpenAI GPT-4 via Azure")
 
 # Main content
 st.markdown("<h1 class='main-header'>📄 ATS Resume Analyzer</h1>", unsafe_allow_html=True)
@@ -353,7 +370,7 @@ with tab1:
     
     if st.session_state.jd_text and resume_files:
         if st.button("Analyze Resumes", key="analyze_button", type="primary", use_container_width=True):
-            with st.spinner("Analyzing resumes... This may take a few minutes."):
+            with st.spinner("Analyzing resumes using GPT-4... This may take a few minutes."):
                 # Analyze each resume
                 st.session_state.analyzed_results = {}
                 st.session_state.resume_texts = {}
@@ -451,7 +468,7 @@ with tab2:
             
             # Add button to generate improvement suggestions
             if st.button("Generate Improvement Suggestions", key=f"improve_{selected_resume}"):
-                with st.spinner("Generating suggestions..."):
+                with st.spinner("Generating suggestions using GPT-4..."):
                     if selected_resume in st.session_state.resume_texts:
                         resume_text = st.session_state.resume_texts[selected_resume]
                         # Generate suggestions

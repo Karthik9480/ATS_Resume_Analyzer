@@ -2,8 +2,6 @@
 
 A Streamlit application that uses AI (Ollama) to analyze resumes against job descriptions, providing scores, detailed analysis, and improvement suggestions.
 
-![ATS Resume Analyzer Screenshot](https://via.placeholder.com/800x450)
-
 ## Features
 
 - **Job Description Upload**: Upload job descriptions in PDF, DOCX, or TXT formats

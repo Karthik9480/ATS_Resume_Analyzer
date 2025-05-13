@@ -110,7 +110,7 @@ if 'analysis_features' not in st.session_state:
 
 # OpenAI API integration
 def generate_gpt_response(prompt, system_prompt=None, temperature=0.7, max_retries=3):
-    """Generate response using OpenAI GPT-4 Azure API"""
+    """Generate response"""
     url = f"{OPENAI_DEPLOYMENT_ENDPOINT_GPT4}/openai/deployments/{OPENAI_DEPLOYMENT_NAME_GPT4}/chat/completions?api-version={OPENAI_API_VERSION}"
     headers = {
         "Content-Type": "application/json",
@@ -139,7 +139,7 @@ def generate_gpt_response(prompt, system_prompt=None, temperature=0.7, max_retri
                 time.sleep(2)  # Wait before retrying
                 continue
             else:
-                st.error(f"Failed to communicate with OpenAI GPT-4 after {max_retries} attempts: {str(e)}")
+                st.error(f"Failed to communicate  after {max_retries} attempts: {str(e)}")
                 return "Error: Could not get a response from the AI."
 
 # Define the system prompts
@@ -333,7 +333,7 @@ with st.sidebar:
     # Add API status indicator
     st.markdown("---")
     st.markdown("### API Status")
-    st.info("Using OpenAI GPT-4 via Azure")
+    st.info("Using LLama3")
 
 # Main content
 st.markdown("<h1 class='main-header'>📄 ATS Resume Analyzer</h1>", unsafe_allow_html=True)
@@ -370,7 +370,7 @@ with tab1:
     
     if st.session_state.jd_text and resume_files:
         if st.button("Analyze Resumes", key="analyze_button", type="primary", use_container_width=True):
-            with st.spinner("Analyzing resumes using GPT-4... This may take a few minutes."):
+            with st.spinner("Analyzing resumes ... This may take a few minutes."):
                 # Analyze each resume
                 st.session_state.analyzed_results = {}
                 st.session_state.resume_texts = {}
@@ -468,7 +468,7 @@ with tab2:
             
             # Add button to generate improvement suggestions
             if st.button("Generate Improvement Suggestions", key=f"improve_{selected_resume}"):
-                with st.spinner("Generating suggestions using GPT-4..."):
+                with st.spinner("Generating suggestions..."):
                     if selected_resume in st.session_state.resume_texts:
                         resume_text = st.session_state.resume_texts[selected_resume]
                         # Generate suggestions
